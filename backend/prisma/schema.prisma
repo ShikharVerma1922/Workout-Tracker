@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  bodyWeight    Float?
+  preferredUnit Unit     @default(KG)
+  createAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  routines Routine[]
+  workouts Workout[]
+
+  @@map("users")
+}
+
+model Exercise {
+  id           String  @id @default(uuid())
+  name         String
+  muscleGroup  String
+  equipment    String?
+  isBodyWeight Boolean @default(false)
+
+  routineExercises RoutineExercise[]
+  workoutExercises WorkoutExercise[]
+
+  @@map("exercises")
+}
+
+model Routine {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workouts  Workout[]
+  exercises RoutineExercise[]
+
+  @@map("routines")
+}
+
+model RoutineExercise {
+  id         String @id @default(uuid())
+  routineId  String
+  exerciseId String
+  order      Int
+  targetSet  Int?
+  restTimer  Int?
+
+  routine  Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@map("routine_exercises")
+}
+
+model Workout {
+  id        String    @id @default(uuid())
+  userId    String
+  routineId String?
+  name      String
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  notes     String?
+  volume    Float?
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routine Routine? @relation(fields: [routineId], references: [id], onDelete: Cascade)
+
+  exercises WorkoutExercise[]
+
+  @@map("workouts")
+}
+
+model WorkoutExercise {
+  id         String  @id @default(uuid())
+  exerciseId String
+  workoutId  String
+  order      Int
+  notes      String?
+
+  exercise Exercise? @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  workout  Workout?  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  sets Set[]
+
+  @@map("workout_exercise")
+}
+
+model Set {
+  id                String  @id @default(uuid())
+  workoutExerciseId String
+  setNumber         Int
+  weight            Float?
+  reps              Int
+  type              SetType @default(NORMAL)
+  isComplete        Boolean @default(false)
+
+  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+
+  @@map("sets")
+}
+
+enum Unit {
+  KG
+  lbs
+}
+
+enum SetType {
+  WARMUP
+  NORMAL
+  FAILURE
+  DROP
+}
