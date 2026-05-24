@@ -1,29 +1,21 @@
 import "dotenv/config";
+import { app } from "./app.js";
 import { prisma } from "./lib/prisma.js";
 
-async function main() {
-  const user = await prisma.user.update({
-    where: {
-      email: "shikhar@test2.com",
-    },
-    data: {
-      bodyWeight: 64.5,
-    },
-  });
+const PORT = process.env.PORT || 3000;
 
-  console.log("Created User: ", user);
+const startServer = async () => {
+  try {
+    await prisma.$connect();
+    console.log("🗄️  Database connected successfully");
 
-  // const allUsers = await prisma.user.findMany();
+    app.listen(PORT, () => {
+      console.log(`⚙️  Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to connect to the database:", error);
+    process.exit(1); // Kill the Node process if the DB is down
+  }
+};
 
-  // console.log(allUsers);
-}
-
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+startServer();
