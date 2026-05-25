@@ -2,9 +2,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../utils/ApiError.js";
+import { env } from "../config/env.js";
 
 export const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: userId }, env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };

@@ -30,7 +30,7 @@ model User {
 
 model Exercise {
   id           String  @id @default(uuid())
-  name         String
+  name         String  @unique
   muscleGroup  String
   equipment    String?
   isBodyWeight Boolean @default(false)
